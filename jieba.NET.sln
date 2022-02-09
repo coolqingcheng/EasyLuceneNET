@@ -9,7 +9,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Analyser", "Analyser\Analys
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Segmenter", "Segmenter\Segmenter.csproj", "{C564CDCB-B52B-455E-86E9-FC0DAE37EF08}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsoleApp1", "ConsoleApp1\ConsoleApp1.csproj", "{C90214B5-CE37-46C4-9CC7-C9C6A2FBD452}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ConsoleApp1", "ConsoleApp1\ConsoleApp1.csproj", "{C90214B5-CE37-46C4-9CC7-C9C6A2FBD452}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EasyLuceneNET", "EasyLuceneNET\EasyLuceneNET.csproj", "{5458D618-C3FA-4B19-B1AF-7950F789AA14}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -33,6 +35,10 @@ Global
 		{C90214B5-CE37-46C4-9CC7-C9C6A2FBD452}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C90214B5-CE37-46C4-9CC7-C9C6A2FBD452}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C90214B5-CE37-46C4-9CC7-C9C6A2FBD452}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5458D618-C3FA-4B19-B1AF-7950F789AA14}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5458D618-C3FA-4B19-B1AF-7950F789AA14}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5458D618-C3FA-4B19-B1AF-7950F789AA14}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5458D618-C3FA-4B19-B1AF-7950F789AA14}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

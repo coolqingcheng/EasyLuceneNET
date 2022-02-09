@@ -5,19 +5,30 @@ using Lucene.Net.Index;
 using Lucene.Net.Search;
 using Lucene.Net.Store;
 using Lucene.Net.Util;
+using Microsoft.Extensions.Logging;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using System.Reflection;
 
 namespace EasyLuceneNET
 {
-    public class EasyLuceneNet : IEasyLuceneNet, IDisposable
+    public class EasyLuceneNetDefaultProvider : IEasyLuceneNet, IDisposable
     {
         const LuceneVersion AppLuceneVersion = LuceneVersion.LUCENE_48;
-        readonly static IndexWriter writer;
-        static EasyLuceneNet()
+        readonly IndexWriter writer;
+
+        private ILogger _logger;
+
+        private FSDirectory dir;
+
+        public EasyLuceneNetDefaultProvider(ILogger<EasyLuceneNetDefaultProvider> logger)
         {
+            _logger = logger;
             var indexPath = Path.Combine(AppContext.BaseDirectory, "indexs");
 
-            using var dir = FSDirectory.Open(indexPath);
+            dir = FSDirectory.Open(indexPath);
 
             // Create an analyzer to process the text
             var analyzer = new JieBaAnalyzer(TokenizerMode.Search);
@@ -34,7 +45,7 @@ namespace EasyLuceneNET
                 {
                     var doc = new Document();
                     var properties = item.GetType().GetProperties(BindingFlags.Instance | BindingFlags.Public);
-                    Console.WriteLine("添加到文档:" + DateTime.Now);
+                    _logger.LogDebug("添加到文档:" + DateTime.Now);
                     Term term = null;
                     foreach (var property in properties)
                     {
@@ -75,11 +86,11 @@ namespace EasyLuceneNET
 
                 });
                 var begin = DateTime.Now;
-                Console.WriteLine("正在提交索引:" + begin);
+                _logger.LogDebug("正在提交索引:" + begin);
                 //writer.Flush(triggerMerge: false, applyAllDeletes: false);
                 writer.Commit();
                 var end = DateTime.Now;
-                Console.WriteLine("索引提交完成:" + end);
+                _logger.LogDebug("索引提交完成:" + end);
                 writer.Flush(false, false);
                 writer.Commit();
             }
@@ -90,23 +101,72 @@ namespace EasyLuceneNET
             writer.Dispose();
         }
 
-        public SearchResult<T> Search<T>(Query query) where T : class, new()
+        public SearchResult<T> Search<T>(string keyword, int index, int size, string[] fields) where T : class, new()
         {
+
+            if (keyword.Length > 75)
+            {
+                keyword = keyword.Substring(0, 75);
+            }
+            if (index <= 1)
+            {
+                index = 1;
+            }
+            if (size < 15)
+            {
+                index = 15;
+            }
+            var result = new SearchResult<T>();
+            var segmenter = new JiebaSegmenter();
+            var keywords = segmenter.Cut(keyword);
+            result.cutKeys.AddRange(keywords);
+            var biaodian = "[’!\"#$%&\'()*+,-./:;<=>?@[\\]^_`{|}~]+（）【】，。： ".ToCharArray();
+            keywords = keywords.Where(a => !biaodian.Where(b => b.ToString() == a).Any()).ToList();
+            BooleanQuery query = new BooleanQuery();
+            foreach (var item in keywords)
+            {
+                foreach (var field in fields)
+                {
+                    if (biaodian.Any(a => a.ToString() == item) == false)
+                    {
+                        query.Add(new TermQuery(new Term(field, item)), Occur.SHOULD);
+                    }
+                }
+            }
+
+            var i = index * size;
+
             using var reader = writer.GetReader(applyAllDeletes: true);
             var searcher = new IndexSearcher(reader);
             var doc = searcher.Search(query, 20 /* top 20 */);
-            var result = new SearchResult<T>
+            result.Total = doc.TotalHits;
+            foreach (var hit in doc.ScoreDocs)
             {
-                Total = doc.TotalHits
-            };
-            foreach (var item in doc.ScoreDocs)
-            {
+                var foundDoc = searcher.Doc(hit.Doc);
                 var t = new T();
-                foreach (var property in t.GetType().GetProperties())
+                var type = t.GetType();
+                var propertity = type.GetProperties(BindingFlags.Instance | BindingFlags.Public);
+
+                foreach (var item in propertity)
                 {
-                    property.SetValue(t, searcher.Doc(item.Doc), null);
+                    var sValue = foundDoc.Get(item.Name);
+                    if (sValue != null)
+                    {
+
+                        try
+                        {
+                            var v = Convert.ChangeType(sValue, item.PropertyType);
+
+                            item.SetValue(t, v, null);
+                        }
+                        catch (Exception)
+                        {
+
+                        }
+                    }
                 }
                 result.list.Add(t);
+
             }
             return result;
         }

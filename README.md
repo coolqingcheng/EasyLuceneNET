@@ -1,15 +1,44 @@
-﻿using ConsoleApp1;
-using EasyLuceneNET;
-using Microsoft.Extensions.DependencyInjection;
+基于https://github.com/SilentCC/JIEba-netcore封装了一个lucene.net的全文检索工具
 
+# 使用
+
+## 安装nuget包
+
+```
+Install-Package EasyLuceneNET -Version 1.0.0
+```
+
+## 创建模型
+
+``` csharp
+ public class Article
+    {
+        [Lucene(FieldStore = Field.Store.YES, IsUnique = true, type = LuceneFieldType.Int32)]
+        public int Id { get; set; }
+        [Lucene(FieldStore = Field.Store.YES, IsUnique = false, type = LuceneFieldType.Text)]
+        public string Title { get; set; }
+
+
+        [Lucene(FieldStore = Field.Store.YES, IsUnique = false, type = LuceneFieldType.Text)]
+        public string Content { get; set; }
+    }
+```
+
+## 依赖注入
+
+``` csharp
 var service = new ServiceCollection();
 service.AddLogging();
 service.AddEasyLuceneNet();
 var serviceProvider = service.BuildServiceProvider();
 
 var easy = serviceProvider.GetService<IEasyLuceneNet>();
+```
 
-//创建索引
+## 创建索引
+
+``` csharp
+
 
 var list = new List<Article>();
 for (int i = 0; i < 100; i++)
@@ -29,8 +58,11 @@ MVVM是将页面绑定到视图模型，所有的操作和事件响应通过视�
 }
 easy!.AddIndex(list);
 
-//全文检索
+```
 
+## 检索
+
+``` csharp
 var result = easy.Search<Article>("移动游戏开发", 1, 20, new string[] { "Title", "Content" });
 Console.WriteLine("一共:" + result.Total);
 foreach (var item in result.list)
@@ -39,4 +71,4 @@ foreach (var item in result.list)
 }
 Console.WriteLine($"分词:{string.Join(" ",result.cutKeys)}");
 Console.WriteLine("完成");
-
+```
