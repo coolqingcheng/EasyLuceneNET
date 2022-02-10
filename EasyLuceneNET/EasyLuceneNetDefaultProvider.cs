@@ -189,6 +189,11 @@ namespace EasyLuceneNET
                 result.list.Add(t);
             }
         }
+
+        public void Delete(string key, string value)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
 
