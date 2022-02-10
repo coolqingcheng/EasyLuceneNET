@@ -139,11 +139,17 @@ namespace EasyLuceneNET
 
             using var reader = writer.GetReader(applyAllDeletes: true);
             var searcher = new IndexSearcher(reader);
-            var doc = searcher.Search(query, 20 /* top 20 */);
+            var doc = searcher.Search(query, size * 10 /* top 20 */);
             result.Total = doc.TotalHits;
-            foreach (var hit in doc.ScoreDocs)
+            var maxIndex = doc.ScoreDocs.Length - 2;
+            var endIndex = ((index-1) * size) + size;
+            if (endIndex < maxIndex)
             {
-                var foundDoc = searcher.Doc(hit.Doc);
+                maxIndex = endIndex;
+            }
+            for (int j = ((index - 1) * size); j < maxIndex; j++)
+            {
+                var foundDoc = searcher.Doc(doc.ScoreDocs[j].Doc);
                 var t = new T();
                 var type = t.GetType();
                 var propertity = type.GetProperties(BindingFlags.Instance | BindingFlags.Public);
@@ -167,7 +173,6 @@ namespace EasyLuceneNET
                     }
                 }
                 result.list.Add(t);
-
             }
             return result;
         }
