@@ -31,12 +31,19 @@ var easy = serviceProvider.GetService<IEasyLuceneNet>();
 
 //全文检索
 
-var result = easy.Search<Article>("改造页面", 2, 20, new string[] { "Title", "Content" });
+var result = easy!.Search<Article>(new SearchRequest()
+{
+    keyword = "事件模型",
+    index = 1,
+    size = 20,
+    fields = new string[] { "Title", "Content" },
+    OrderByField = "Id",
+});
 Console.WriteLine("一共:" + result.Total);
 foreach (var item in result.list)
 {
     Console.WriteLine($"id:{item.Id} title:{item.Title}");
 }
-Console.WriteLine($"分词:{string.Join(" ",result.cutKeys)}");
+Console.WriteLine($"分词:{string.Join(" ", result.cutKeys)}");
 Console.WriteLine("完成");
 

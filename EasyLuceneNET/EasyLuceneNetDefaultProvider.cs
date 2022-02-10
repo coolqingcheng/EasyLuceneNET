@@ -102,31 +102,31 @@ namespace EasyLuceneNET
             dir.Dispose();
         }
 
-        public SearchResult<T> Search<T>(string keyword, int index, int size, string[] fields) where T : class, new()
+        public SearchResult<T> Search<T>(SearchRequest request) where T : class, new()
         {
 
-            if (keyword.Length > 75)
+            if (request.keyword.Length > 75)
             {
-                keyword = keyword.Substring(0, 75);
+                request.keyword = request.keyword.Substring(0, 75);
             }
-            if (index <= 1)
+            if (request.index <= 1)
             {
-                index = 1;
+                request.index = 1;
             }
-            if (size < 15)
+            if (request.size < 15)
             {
-                index = 15;
+                request.index = 15;
             }
             var result = new SearchResult<T>();
             var segmenter = new JiebaSegmenter();
-            var keywords = segmenter.Cut(keyword);
+            var keywords = segmenter.Cut(request.keyword);
             result.cutKeys.AddRange(keywords);
             var biaodian = "[’!\"#$%&\'()*+,-./:;<=>?@[\\]^_`{|}~]+（）【】，。： ".ToCharArray();
             keywords = keywords.Where(a => !biaodian.Where(b => b.ToString() == a).Any()).ToList();
             BooleanQuery query = new BooleanQuery();
             foreach (var item in keywords)
             {
-                foreach (var field in fields)
+                foreach (var field in request.fields)
                 {
                     if (biaodian.Any(a => a.ToString() == item) == false)
                     {
@@ -135,14 +135,29 @@ namespace EasyLuceneNET
                 }
             }
 
-            var i = index * size;
+            var i = request.index * request.size;
 
             using var reader = writer.GetReader(applyAllDeletes: true);
             var searcher = new IndexSearcher(reader);
-            var doc = searcher.Search(query, size * 10 /* top 20 */);
+            var sort = new Sort();
+            if (!string.IsNullOrWhiteSpace(request.OrderByDescField))
+            {
+                sort.SetSort(new SortField(request.OrderByDescField, SortFieldType.INT32, true));
+            }
+            if (!string.IsNullOrWhiteSpace(request.OrderByField))
+            {
+                sort.SetSort(new SortField(request.OrderByField, SortFieldType.INT32, false));
+            }
+            var doc = searcher.Search(query, request.size * 10, sort);
+            Search(request.index, request.size, result, searcher, doc);
+            return result;
+        }
+
+        private static void Search<T>(int index, int size, SearchResult<T> result, IndexSearcher searcher, TopDocs doc) where T : class, new()
+        {
             result.Total = doc.TotalHits;
             var maxIndex = doc.ScoreDocs.Length - 2;
-            var endIndex = ((index-1) * size) + size;
+            var endIndex = ((index - 1) * size) + size;
             if (endIndex < maxIndex)
             {
                 maxIndex = endIndex;
@@ -174,7 +189,6 @@ namespace EasyLuceneNET
                 }
                 result.list.Add(t);
             }
-            return result;
         }
     }
 }
