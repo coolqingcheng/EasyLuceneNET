@@ -71,7 +71,6 @@ namespace EasyLuceneNET
                             if (att.IsUnique)
                             {
                                 term = new Term(name, value.ToString());
-
                             }
                         }
                     }
@@ -87,7 +86,7 @@ namespace EasyLuceneNET
                 });
                 var begin = DateTime.Now;
                 _logger.LogDebug("正在提交索引:" + begin);
-                //writer.Flush(triggerMerge: false, applyAllDeletes: false);
+                writer.Flush(triggerMerge: false, applyAllDeletes: false);
                 writer.Commit();
                 var end = DateTime.Now;
                 _logger.LogDebug("索引提交完成:" + end);
