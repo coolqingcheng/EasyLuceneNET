@@ -1,11 +1,11 @@
-基于https://github.com/SilentCC/JIEba-netcore封装了一个lucene.net的全文检索工具
+基于https://github.com/SilentCC/JIEba-netcore 封装了一个lucene.net的全文检索工具
 
 # 使用
 
 ## 安装nuget包
 
 ```
-Install-Package EasyLuceneNET -Version 1.0.0
+Install-Package EasyLuceneNET
 ```
 
 ## 创建模型

@@ -5,7 +5,7 @@
 		<!--<ImplicitUsings>enable</ImplicitUsings>-->
 		<Nullable>enable</Nullable>
 		<PackageId>EasyLuceneNET</PackageId>
-		<PackageVersion>1.0</PackageVersion>
+		<PackageVersion>1.1</PackageVersion>
 		<Description>简单的封装了jiba.net和Lucene.net进行中文检索，适用与基本的文档和网站站内检索</Description>
 		<PackageProjectUrl>https://github.com/coolqingcheng/EasyLuceneNET</PackageProjectUrl>
 		<Authors>青城</Authors>

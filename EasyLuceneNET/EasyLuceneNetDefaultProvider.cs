@@ -99,6 +99,7 @@ namespace EasyLuceneNET
         public void Dispose()
         {
             writer.Dispose();
+            dir.Dispose();
         }
 
         public SearchResult<T> Search<T>(string keyword, int index, int size, string[] fields) where T : class, new()
