@@ -70,7 +70,16 @@ namespace EasyLuceneNET
                             }
                             if (att.IsUnique)
                             {
-                                term = new Term(name, value.ToString());
+                                if (value.GetType() == typeof(int))
+                                {
+                                    var bytes = new BytesRef(NumericUtils.BUF_SIZE_INT32);
+                                    NumericUtils.Int32ToPrefixCoded(Convert.ToInt32(value), 0, bytes);
+                                    term = new Term(name, bytes);
+                                }
+                                else
+                                {
+                                    term = new Term(name, value.ToString());
+                                }
                             }
                         }
                     }
