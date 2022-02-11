@@ -79,3 +79,8 @@ foreach (var item in result.list)
 Console.WriteLine($"分词:{string.Join(" ", result.cutKeys)}");
 Console.WriteLine("完成");
 ```
+
+## 删除索引 
+
+//传递一个文档对应的模型，只需要给主键赋值即可
+easy.Delete(new Article { Id = 1 });

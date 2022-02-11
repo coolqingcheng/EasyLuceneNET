@@ -205,9 +205,32 @@ namespace EasyLuceneNET
             }
         }
 
-        public void Delete(string key, string value)
+        public void Delete<T>(T entity)
         {
-            throw new NotImplementedException();
+            if (entity != null)
+            {
+                var properties = entity.GetType().GetProperties(BindingFlags.Instance | BindingFlags.Public);
+                var item = properties.Where(p => p.GetCustomAttribute<LuceneAttribute>().IsUnique = true).FirstOrDefault();
+                if (item != null)
+                {
+                    var value = item.GetValue(entity, null);
+                    Term term;
+                    if (new Type[] { typeof(int), typeof(long), typeof(short), typeof(uint), typeof(ulong), typeof(ushort) }.Contains(value.GetType()))
+                    {
+                        var bytes = new BytesRef(NumericUtils.BUF_SIZE_INT32);
+                        NumericUtils.Int32ToPrefixCoded(Convert.ToInt32(value), 0, bytes);
+                        term = new Term(item.Name, bytes);
+                    }
+                    else
+                    {
+                        term = new Term(item.Name, value.ToString());
+                    }
+                    writer.DeleteDocuments(term);
+                    writer.Flush(true, true);
+                    writer.Commit();
+                }
+
+            }
         }
     }
 }

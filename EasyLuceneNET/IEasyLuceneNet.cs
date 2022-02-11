@@ -22,9 +22,8 @@ namespace EasyLuceneNET
         /// <summary>
         /// 删除
         /// </summary>
-        /// <param name="key"></param>
-        /// <param name="value"></param>
-        void Delete(string key, string value);
+        /// <param name="entity"></param>
+        void Delete<T>(T entity);
     }
 
     public class SearchResult<T> where T : class, new()
