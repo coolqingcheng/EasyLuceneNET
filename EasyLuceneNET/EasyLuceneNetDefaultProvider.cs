@@ -52,7 +52,12 @@ namespace EasyLuceneNET
                         string name = property.Name;
                         var value = property.GetValue(item);
                         var att = property.GetCustomAttribute<LuceneAttribute>();
-                        if (att == null || att.type == LuceneFieldType.String)
+                        if (att == null)
+                        {
+                            _logger.LogWarning($"文档字段为:{name} 没有贴上Lucene标签，不索引");
+                            continue;
+                        }
+                        if (att.type == LuceneFieldType.String)
                         {
                             //默认用StringField  
                             doc.Add(new StringField(name, value.ToString(), Field.Store.YES));
@@ -68,18 +73,19 @@ namespace EasyLuceneNET
                             {
                                 doc.Add(new Int32Field(name, Convert.ToInt32(value), att.FieldStore));
                             }
-                            if (att.IsUnique)
+
+                        }
+                        if (att.IsUnique)
+                        {
+                            if (new Type[] { typeof(int), typeof(long), typeof(short), typeof(uint), typeof(ulong), typeof(ushort) }.Contains(value.GetType()))
                             {
-                                if (value.GetType() == typeof(int))
-                                {
-                                    var bytes = new BytesRef(NumericUtils.BUF_SIZE_INT32);
-                                    NumericUtils.Int32ToPrefixCoded(Convert.ToInt32(value), 0, bytes);
-                                    term = new Term(name, bytes);
-                                }
-                                else
-                                {
-                                    term = new Term(name, value.ToString());
-                                }
+                                var bytes = new BytesRef(NumericUtils.BUF_SIZE_INT32);
+                                NumericUtils.Int32ToPrefixCoded(Convert.ToInt32(value), 0, bytes);
+                                term = new Term(name, bytes);
+                            }
+                            else
+                            {
+                                term = new Term(name, value.ToString());
                             }
                         }
                     }
