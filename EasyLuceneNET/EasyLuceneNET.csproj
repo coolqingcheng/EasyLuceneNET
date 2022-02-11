@@ -12,6 +12,8 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+		<PackageReference Include="Lucene.Net" Version="4.8.0-beta00015" />
+		<PackageReference Include="Lucene.Net.Highlighter" Version="4.8.0-beta00015" />
 		<PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="6.0.0" />
 		<PackageReference Include="Microsoft.Extensions.FileProviders.Embedded" Version="6.0.2" />
 		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="6.0.0" />

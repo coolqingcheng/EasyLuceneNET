@@ -1,8 +1,10 @@
 ﻿using jieba.NET;
 using JiebaNet.Segmenter;
+using Lucene.Net.Analysis;
 using Lucene.Net.Documents;
 using Lucene.Net.Index;
 using Lucene.Net.Search;
+using Lucene.Net.Search.Highlight;
 using Lucene.Net.Store;
 using Lucene.Net.Util;
 using Microsoft.Extensions.Logging;
@@ -23,6 +25,8 @@ namespace EasyLuceneNET
 
         private FSDirectory dir;
 
+        //private readonly JieBaAnalyzer analyzer;
+
         public EasyLuceneNetDefaultProvider(ILogger<EasyLuceneNetDefaultProvider> logger)
         {
             _logger = logger;
@@ -31,7 +35,7 @@ namespace EasyLuceneNET
             dir = FSDirectory.Open(indexPath);
 
             // Create an analyzer to process the text
-            var analyzer = new JieBaAnalyzer(TokenizerMode.Search);
+            Analyzer analyzer = new JieBaAnalyzer(TokenizerMode.Search);
             // Create an index writer
             var indexConfig = new IndexWriterConfig(AppLuceneVersion, analyzer);
             writer = new IndexWriter(dir, indexConfig);
@@ -162,8 +166,14 @@ namespace EasyLuceneNET
             {
                 sort.SetSort(new SortField(request.OrderByField, SortFieldType.INT32, false));
             }
-            var doc = searcher.Search(query, request.size * 10, sort);
-            Search(request.index, request.size, result, searcher, doc);
+            TopFieldDocs? doc = searcher.Search(query, request.size * 10, sort);
+            var scorer = new QueryScorer(query, "Content");
+            Highlighter highlighter = new Highlighter(scorer);
+            Search(request.index,
+                   request.size,
+                   result,
+                   searcher,
+                   doc);
             return result;
         }
 
@@ -203,6 +213,22 @@ namespace EasyLuceneNET
                 }
                 result.list.Add(t);
             }
+        }
+
+        private String highlightField(Query query, String fieldName, String text)
+        {
+            TokenStream tokenStream = new JieBaAnalyzer(TokenizerMode.Search)
+                .GetTokenStream(fieldName, text);
+            // Assuming "<B>", "</B>" used to highlight
+            SimpleHTMLFormatter formatter = new SimpleHTMLFormatter();
+            QueryScorer scorer = new QueryScorer(query);
+            Highlighter highlighter = new Highlighter(formatter, scorer)
+            {
+                TextFragmenter = (new SimpleFragmenter(int.MaxValue))
+            };
+
+            String rv = highlighter.GetBestFragments(tokenStream, text, 1, "(FIELD TEXT TRUNCATED)");
+            return rv.Length == 0 ? text : rv;
         }
 
         public void Delete<T>(T entity)
