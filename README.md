@@ -82,7 +82,7 @@ Console.WriteLine("完成");
 
 ## 删除索引 
 
-//传递一个文档对应的模型，只需要给主键赋值即可
+传递一个文档对应的模型，只需要给主键赋值即可
 
 ``` csharp
 easy.Delete(new Article { Id = 1 });
